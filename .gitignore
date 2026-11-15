@@ -24,8 +24,9 @@ dist/
 .env.production.local
 
 # Storage uploads (local fallback)
-uploads/
-storage/
+/uploads/
+/storage/
+backend/uploads/
 
 # System Files
 .DS_Store
