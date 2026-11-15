@@ -22,6 +22,15 @@ const refreshSchema = z.object({
   refreshToken: z.string().min(1),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8, 'New password must be at least 8 characters long'),
+});
+
 router.post('/register', authRateLimiter, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validated = registerSchema.parse(req.body);
@@ -47,6 +56,26 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
     const validated = refreshSchema.parse(req.body);
     const tokens = await AuthService.refresh(validated.refreshToken);
     res.json({ success: true, data: tokens });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/forgot-password', authRateLimiter, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const validated = forgotPasswordSchema.parse(req.body);
+    const result = await AuthService.forgotPassword(validated.email);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/reset-password', authRateLimiter, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const validated = resetPasswordSchema.parse(req.body);
+    const result = await AuthService.resetPassword(validated.token, validated.password);
+    res.json({ success: true, data: result });
   } catch (err) {
     next(err);
   }

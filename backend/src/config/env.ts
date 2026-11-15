@@ -35,4 +35,10 @@ export const env = {
   JOB_POLL_INTERVAL_MS: parseInt(process.env.JOB_POLL_INTERVAL_MS || '3000', 10),
   JOB_MAX_RETRIES: parseInt(process.env.JOB_MAX_RETRIES || '3', 10),
   JOB_CONCURRENCY: parseInt(process.env.JOB_CONCURRENCY || '2', 10),
+
+  // Email / SMTP (Gmail App Password)
+  GMAIL_USER: process.env.GMAIL_USER || 'manishkpandey.work@gmail.com',
+  GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD || 'abxlzrhwxsuqpfbz',
+  CONTACT_RECEIVER_EMAIL: process.env.CONTACT_RECEIVER_EMAIL || 'manishkpandey.work@gmail.com',
+  FRONTEND_URL: process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:3000',
 };

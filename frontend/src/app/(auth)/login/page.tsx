@@ -11,7 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { setUser, setCurrentOrganization, setOrganizations } = useAppStore();
 
-  const [email, setEmail] = useState('admin@knowledgeai.internal');
+  const [email, setEmail] = useState('admin.kai@yopmail.com');
   const [password, setPassword] = useState('Password123!');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export default function LoginPage() {
   };
 
   const autofillDemo = () => {
-    setEmail('admin@knowledgeai.internal');
+    setEmail('admin.kai@yopmail.com');
     setPassword('Password123!');
   };
 
@@ -94,9 +94,9 @@ export default function LoginPage() {
               <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Password
               </label>
-              <span className="text-xs text-brand-400 hover:underline cursor-pointer">
+              <Link href="/forgot-password" className="text-xs text-brand-400 hover:underline">
                 Forgot password?
-              </span>
+              </Link>
             </div>
             <div className="relative">
               <Lock className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
@@ -141,7 +141,7 @@ export default function LoginPage() {
             </button>
           </div>
           <p className="text-zinc-500 text-[11px]">
-            Email: <code className="text-zinc-300 font-mono">admin@knowledgeai.internal</code>
+            Email: <code className="text-zinc-300 font-mono">admin.kai@yopmail.com</code>
             <br />
             Pass: <code className="text-zinc-300 font-mono">Password123!</code> (Role: Org Admin)
           </p>

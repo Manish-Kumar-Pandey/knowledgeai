@@ -30,6 +30,14 @@ export class CryptoUtil {
     return jwt.verify(token, env.JWT_REFRESH_SECRET) as AuthTokenPayload;
   }
 
+  static generatePasswordResetToken(payload: { userId: string; email: string }): string {
+    return jwt.sign({ ...payload, type: 'reset_password' }, env.JWT_SECRET, { expiresIn: '1h' });
+  }
+
+  static verifyPasswordResetToken(token: string): { userId: string; email: string; type: string } {
+    return jwt.verify(token, env.JWT_SECRET) as { userId: string; email: string; type: string };
+  }
+
   static computeSha256(buffer: Buffer): string {
     return crypto.createHash('sha256').update(buffer).digest('hex');
   }

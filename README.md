@@ -122,7 +122,7 @@
    - **Interactive OpenAPI / Swagger UI**: [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
 
 5. Default Demo Credentials:
-   - **Email**: `admin@knowledgeai.internal`
+   - **Email**: `admin.kai@yopmail.com`
    - **Password**: `Password123!`
    - **Role**: `org_admin`
 

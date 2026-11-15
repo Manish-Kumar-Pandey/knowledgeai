@@ -1,6 +1,8 @@
 import { pool, queryOne, query } from '../db/pool';
 import { CryptoUtil } from '../utils/crypto';
 import { AppError } from '../middleware/errorHandler';
+import { EmailService } from './email.service';
+import { env } from '../config/env';
 import { User, UserRole } from '../types';
 
 export class AuthService {
@@ -210,5 +212,60 @@ export class AuthService {
       user,
       organizations,
     };
+  }
+
+  static async forgotPassword(email: string) {
+    const user = await queryOne(`SELECT id, email, full_name, is_active FROM users WHERE email = $1`, [
+      email.toLowerCase(),
+    ]);
+
+    if (user && user.is_active) {
+      const resetToken = CryptoUtil.generatePasswordResetToken({
+        userId: user.id,
+        email: user.email,
+      });
+
+      const frontendBase = env.FRONTEND_URL.replace(/\/+$/, '');
+      const resetLink = `${frontendBase}/reset-password?token=${encodeURIComponent(resetToken)}`;
+
+      await EmailService.sendPasswordResetEmail(user.email, resetLink, user.full_name);
+    }
+
+    return {
+      success: true,
+      message: 'If an account exists with this email address, password reset instructions have been sent.',
+    };
+  }
+
+  static async resetPassword(token: string, newPassword: string) {
+    try {
+      const decoded = CryptoUtil.verifyPasswordResetToken(token);
+      if (!decoded || decoded.type !== 'reset_password') {
+        throw new AppError('Invalid or expired password reset link', 400);
+      }
+
+      const user = await queryOne(`SELECT id, is_active FROM users WHERE id = $1`, [decoded.userId]);
+      if (!user || !user.is_active) {
+        throw new AppError('User account not found or has been deactivated', 404);
+      }
+
+      const passwordHash = await CryptoUtil.hashPassword(newPassword);
+
+      await query(`UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`, [
+        passwordHash,
+        user.id,
+      ]);
+
+      return {
+        success: true,
+        message: 'Your password has been successfully reset. You may now sign in.',
+      };
+    } catch (err: any) {
+      if (err.name === 'TokenExpiredError') {
+        throw new AppError('The password reset link has expired. Please request a new one.', 400);
+      }
+      if (err instanceof AppError) throw err;
+      throw new AppError('Invalid or expired password reset link', 400);
+    }
   }
 }
