@@ -9,11 +9,14 @@ VALUES
 ON CONFLICT (slug) DO NOTHING;
 
 -- 2. Create Demo Admin User (Password: Password123!)
--- Hash generated using bcrypt for 'Password123!'
+-- Verified bcrypt hash for 'Password123!'
 INSERT INTO users (id, email, password_hash, full_name, is_active)
 VALUES 
-    ('00000000-0000-0000-0000-000000000002', 'admin.kai@yopmail.com', '$2a$10$wT8f6sIq4Z9Zl1N6aC9Oeu248u7M.M8VjFz7P1o/uY1uO8a.9C1vG', 'Dr. Sarah Connor', TRUE)
-ON CONFLICT (email) DO NOTHING;
+    ('00000000-0000-0000-0000-000000000002', 'admin.kai@yopmail.com', '$2a$10$9nB4ByHfCAlSGNfMCMr.JOTjuEPBBoXpcxUSuAvVrJxeVedmSCJiG', 'Dr. Sarah Connor', TRUE)
+ON CONFLICT (id) DO UPDATE SET 
+    email = EXCLUDED.email,
+    password_hash = EXCLUDED.password_hash,
+    is_active = TRUE;
 
 -- 3. Link Demo Admin User to Acme Organization as Org Admin
 INSERT INTO organization_members (organization_id, user_id, role)
