@@ -12,7 +12,7 @@ ON CONFLICT (slug) DO NOTHING;
 -- Hash generated using bcrypt for 'Password123!'
 INSERT INTO users (id, email, password_hash, full_name, is_active)
 VALUES 
-    ('00000000-0000-0000-0000-000000000002', 'admin@knowledgeai.internal', '$2a$10$wT8f6sIq4Z9Zl1N6aC9Oeu248u7M.M8VjFz7P1o/uY1uO8a.9C1vG', 'Dr. Sarah Connor', TRUE)
+    ('00000000-0000-0000-0000-000000000002', 'admin.kai@yopmail.com', '$2a$10$wT8f6sIq4Z9Zl1N6aC9Oeu248u7M.M8VjFz7P1o/uY1uO8a.9C1vG', 'Dr. Sarah Connor', TRUE)
 ON CONFLICT (email) DO NOTHING;
 
 -- 3. Link Demo Admin User to Acme Organization as Org Admin
