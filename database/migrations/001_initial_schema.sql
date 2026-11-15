@@ -274,17 +274,33 @@ CREATE INDEX IF NOT EXISTS idx_eval_results_org ON evaluation_results(organizati
 -- ==============================================================================
 -- Row-Level Security (RLS) Setup
 -- ==============================================================================
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE organization_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invitations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE organization_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE knowledge_bases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE document_versions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE document_chunks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ingestion_jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE message_citations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
-ALTER TABLE organization_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evaluation_datasets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evaluation_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evaluation_results ENABLE ROW LEVEL SECURITY;
 
--- Note: In application mode, app.current_org_id is set per transaction/query.
--- Service-role / DB admin can bypass RLS, while scoped tenant connections adhere strictly.
+-- Service-role / DB admin / Express backend can bypass RLS,
+-- while tenant-scoped queries adhere strictly to app.current_org_id.
+CREATE POLICY org_tenant_isolation_policy ON organizations
+    FOR ALL
+    USING (
+        NULLIF(current_setting('app.current_org_id', true), '')::uuid IS NULL 
+        OR id = NULLIF(current_setting('app.current_org_id', true), '')::uuid
+    );
+
 CREATE POLICY kb_tenant_isolation_policy ON knowledge_bases
     FOR ALL
     USING (
@@ -314,6 +330,20 @@ CREATE POLICY conv_tenant_isolation_policy ON conversations
     );
 
 CREATE POLICY msg_tenant_isolation_policy ON messages
+    FOR ALL
+    USING (
+        NULLIF(current_setting('app.current_org_id', true), '')::uuid IS NULL 
+        OR organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid
+    );
+
+CREATE POLICY feedback_tenant_isolation_policy ON feedback
+    FOR ALL
+    USING (
+        NULLIF(current_setting('app.current_org_id', true), '')::uuid IS NULL 
+        OR organization_id = NULLIF(current_setting('app.current_org_id', true), '')::uuid
+    );
+
+CREATE POLICY jobs_tenant_isolation_policy ON ingestion_jobs
     FOR ALL
     USING (
         NULLIF(current_setting('app.current_org_id', true), '')::uuid IS NULL 
