@@ -21,12 +21,21 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const cleanEmail = email.trim().toLowerCase();
+    const domain = cleanEmail.split('@')[1] || '';
+    const blockedDomains = ['yopmail.com', 'mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com', 'trashmail.com'];
+    if (blockedDomains.includes(domain)) {
+      setError('Registration using temporary or disposable email addresses is not permitted. Please use your corporate or work email.');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await ApiClient.post('/auth/register', {
         fullName,
-        email,
+        email: cleanEmail,
         organizationName,
         password,
       });

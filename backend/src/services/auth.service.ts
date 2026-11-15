@@ -2,6 +2,7 @@ import { pool, queryOne, query } from '../db/pool';
 import { CryptoUtil } from '../utils/crypto';
 import { AppError } from '../middleware/errorHandler';
 import { EmailService } from './email.service';
+import { DisposableEmailValidator } from '../utils/disposableEmail';
 import { env } from '../config/env';
 import { User, UserRole } from '../types';
 
@@ -12,6 +13,13 @@ export class AuthService {
     fullName: string;
     organizationName?: string;
   }) {
+    if (DisposableEmailValidator.isDisposable(data.email)) {
+      throw new AppError(
+        'Registration using temporary or disposable email addresses is not permitted. Please use your work or personal email.',
+        400
+      );
+    }
+
     const existing = await queryOne(`SELECT id FROM users WHERE email = $1`, [data.email.toLowerCase()]);
     if (existing) {
       throw new AppError('An account with this email address already exists', 409);
@@ -92,6 +100,13 @@ export class AuthService {
   }
 
   static async login(email: string, password: string) {
+    if (DisposableEmailValidator.isDisposable(email) && !DisposableEmailValidator.isDemoAccount(email)) {
+      throw new AppError(
+        'Access using temporary or disposable email addresses is prohibited. Please sign in with your verified work email.',
+        403
+      );
+    }
+
     const user = await queryOne(
       `SELECT id, email, password_hash, full_name, avatar_url, is_active, created_at FROM users WHERE email = $1`,
       [email.toLowerCase()]
@@ -215,6 +230,20 @@ export class AuthService {
   }
 
   static async forgotPassword(email: string) {
+    if (DisposableEmailValidator.isDemoAccount(email)) {
+      throw new AppError(
+        'Password reset is strictly disabled for the public demo administrator account.',
+        403
+      );
+    }
+
+    if (DisposableEmailValidator.isDisposable(email)) {
+      throw new AppError(
+        'Password reset is not permitted for temporary or disposable email addresses.',
+        400
+      );
+    }
+
     const user = await queryOne(`SELECT id, email, full_name, is_active FROM users WHERE email = $1`, [
       email.toLowerCase(),
     ]);
@@ -242,6 +271,13 @@ export class AuthService {
       const decoded = CryptoUtil.verifyPasswordResetToken(token);
       if (!decoded || decoded.type !== 'reset_password') {
         throw new AppError('Invalid or expired password reset link', 400);
+      }
+
+      if (DisposableEmailValidator.isDemoAccount(decoded.email)) {
+        throw new AppError(
+          'Password reset is strictly disabled for the public demo administrator account.',
+          403
+        );
       }
 
       const user = await queryOne(`SELECT id, is_active FROM users WHERE id = $1`, [decoded.userId]);

@@ -14,10 +14,22 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail === 'admin.kai@yopmail.com') {
+      setError('Password reset is strictly disabled for the public demo administrator account.');
+      return;
+    }
+
+    if (cleanEmail.endsWith('@yopmail.com') || cleanEmail.endsWith('@mailinator.com') || cleanEmail.endsWith('@tempmail.com')) {
+      setError('Password reset is not permitted for temporary or disposable email addresses.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await ApiClient.post('/auth/forgot-password', { email });
+      await ApiClient.post('/auth/forgot-password', { email: cleanEmail });
       setSubmitted(true);
     } catch (err: any) {
       setError(err.message || 'Failed to request password reset. Please try again.');
