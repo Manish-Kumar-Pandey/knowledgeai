@@ -39,7 +39,18 @@ app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health Check
+// Root health check & Render/hosting probe
+app.all('/', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    service: 'KnowledgeAI Backend API',
+    version: '1.0.0',
+    docs: '/api-docs',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Dedicated Health Check
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -68,11 +79,12 @@ app.use(`${env.API_PREFIX}/evaluations`, evalRoutes);
 app.use(errorHandler);
 
 if (require.main === module) {
-  const server = app.listen(env.PORT, () => {
+  const port = Number(process.env.PORT) || env.PORT || 5000;
+  const server = app.listen(port, '0.0.0.0', () => {
     console.log(`==================================================================`);
-    console.log(`🚀 KnowledgeAI Backend running at http://localhost:${env.PORT}`);
-    console.log(`📚 OpenAPI / Swagger UI: http://localhost:${env.PORT}/api-docs`);
-    console.log(`📡 API Base Endpoint: http://localhost:${env.PORT}${env.API_PREFIX}`);
+    console.log(`🚀 KnowledgeAI Backend running at http://0.0.0.0:${port}`);
+    console.log(`📚 OpenAPI / Swagger UI: http://0.0.0.0:${port}/api-docs`);
+    console.log(`📡 API Base Endpoint: http://0.0.0.0:${port}${env.API_PREFIX}`);
     console.log(`==================================================================`);
 
     // Start embedded worker loop for free-tier single-instance hosting
