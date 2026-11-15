@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL with pgvector extension enabled
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: knowledgeai-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: knowledgeai
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./database/seeds/001_seed_demo_data.sql:/docker-entrypoint-initdb.d/02_seeds.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d knowledgeai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. KnowledgeAI Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: knowledgeai-backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/knowledgeai
+      JWT_SECRET: production_jwt_secret_key_minimum_32_characters_long
+      JWT_REFRESH_SECRET: production_refresh_secret_key_minimum_32_characters_long
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      CLOUDFLARE_CHAT_MODEL: ${CLOUDFLARE_CHAT_MODEL:-@cf/meta/llama-3.1-8b-instruct}
+      CLOUDFLARE_EMBEDDING_MODEL: ${CLOUDFLARE_EMBEDDING_MODEL:-@cf/baai/bge-base-en-v1.5}
+      STORAGE_PROVIDER: local
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+
+  # 3. KnowledgeAI Background Worker (Ingestion Queue)
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: knowledgeai-worker
+    restart: always
+    command: ["node", "dist/worker.js"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/knowledgeai
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      CLOUDFLARE_CHAT_MODEL: ${CLOUDFLARE_CHAT_MODEL:-@cf/meta/llama-3.1-8b-instruct}
+      CLOUDFLARE_EMBEDDING_MODEL: ${CLOUDFLARE_EMBEDDING_MODEL:-@cf/baai/bge-base-en-v1.5}
+      STORAGE_PROVIDER: local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+
+  # 4. Next.js 15+ Frontend Client
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: knowledgeai-frontend
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  uploads_data:

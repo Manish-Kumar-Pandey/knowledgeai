@@ -1,0 +1,37 @@
+[
+  {
+    "id": "eval-001",
+    "question": "What are the remote work policy hours and mandatory core overlap times?",
+    "expected_answer": "Employees must observe core team overlap between 10:00 AM and 3:00 PM in their designated team time zone.",
+    "category": "HR & Workplace Policies",
+    "difficulty": "Direct Factual"
+  },
+  {
+    "id": "eval-002",
+    "question": "What is the incident response protocol for P1 enterprise outages?",
+    "expected_answer": "P1 incidents trigger an immediate on-call page with a 15-minute response SLA and a designated incident commander.",
+    "category": "Engineering SOP",
+    "difficulty": "Direct Factual"
+  },
+  {
+    "id": "eval-003",
+    "question": "How are database migrations tested and deployed in CI/CD pipelines?",
+    "expected_answer": "Migrations run automatically in staging dry-run containers and require peer sign-off before zero-downtime execution in production.",
+    "category": "Infrastructure & Database",
+    "difficulty": "Complex Multi-Step"
+  },
+  {
+    "id": "eval-004",
+    "question": "What encryption standard is mandated for customer data at rest?",
+    "expected_answer": "Customer data at rest must be encrypted using AES-256 with keys managed in a centralized Hardware Security Module (HSM).",
+    "category": "Security & Compliance",
+    "difficulty": "Direct Factual"
+  },
+  {
+    "id": "eval-005",
+    "question": "What should an employee do if they receive an unverified wire transfer request?",
+    "expected_answer": "Employees must immediately escalate to the security operations center and verify through an out-of-band phone call before any action.",
+    "category": "Security & Compliance",
+    "difficulty": "Behavioral & Policy"
+  }
+]
