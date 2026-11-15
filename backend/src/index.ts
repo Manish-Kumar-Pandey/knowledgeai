@@ -15,6 +15,7 @@ import docRoutes from './routes/document.routes';
 import chatRoutes from './routes/chat.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import evalRoutes from './routes/evaluation.routes';
+import { runWorkerLoop } from './worker';
 
 const app = express();
 
@@ -73,6 +74,13 @@ if (require.main === module) {
     console.log(`📚 OpenAPI / Swagger UI: http://localhost:${env.PORT}/api-docs`);
     console.log(`📡 API Base Endpoint: http://localhost:${env.PORT}${env.API_PREFIX}`);
     console.log(`==================================================================`);
+
+    // Start embedded worker loop for free-tier single-instance hosting
+    if (process.env.DISABLE_EMBEDDED_WORKER !== 'true') {
+      runWorkerLoop().catch((err) => {
+        console.error('[Worker] Embedded worker loop error:', err);
+      });
+    }
   });
 
   const handleShutdown = () => {
